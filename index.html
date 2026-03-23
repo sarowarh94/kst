@@ -631,6 +631,7 @@
       saveToLocal();
       reRenderCurrentTab();
       updateTotalCount();
+      showToast("🗑️ Entry deleted");
     }
   }
   function incrementCopyCount(id) {
@@ -649,20 +650,22 @@
   }
 
   // --- Card rendering with conditional buttons ---
+  // showEditDelete: if true, show Copy+Edit+Delete; if false, show only Copy.
   function entryCard(entry, showEditDelete = true) {
+    const noteIcon = "🗒️";
     return `
       <div class="card entry-card" data-id="${entry.id}">
         <div class="entry-info">
           <span class="entry-badge">${entry.type === "Meter" ? "📟 Meter" : "📱 Mobile"}</span>
           <div class="entry-number">${escapeHtml(entry.data)}</div>
-          ${entry.note ? `<div class="entry-note">📝 ${escapeHtml(entry.note)}</div>` : `<div class="entry-note">—</div>`}
+          ${entry.note ? `<div class="entry-note">${noteIcon} ${escapeHtml(entry.note)}</div>` : `<div class="entry-note">${noteIcon} —</div>`}
           <div class="entry-note" style="font-size:12px; margin-top:6px;">⭐ ${entry.copyCount} copies</div>
         </div>
         <div class="entry-actions">
-          <button class="btn-icon btn-copy" data-action="copy" data-id="${entry.id}" data-number="${escapeHtml(entry.data)}">📋 Copy</button>
+          <button class="btn-icon btn-copy" data-id="${entry.id}" data-number="${escapeHtml(entry.data)}">📋 Copy</button>
           ${showEditDelete ? `
-            <button class="btn-icon btn-edit" data-action="edit" data-id="${entry.id}">✏️ Edit</button>
-            <button class="btn-icon btn-delete" data-action="delete" data-id="${entry.id}">🗑️ Delete</button>
+            <button class="btn-icon btn-edit" data-id="${entry.id}">✏️ Edit</button>
+            <button class="btn-icon btn-delete" data-id="${entry.id}">🗑️ Delete</button>
           ` : ''}
         </div>
       </div>
@@ -679,6 +682,7 @@
     });
     if (!filtered.length) { container.innerHTML = `<div class="empty-msg">✨ কোনো এন্ট্রি পাওয়া যায়নি</div>`; return; }
     
+    // Show edit/delete only when filter is not "all" (i.e., when viewing Meters or Mobiles)
     const showEditDelete = (currentTypeFilter !== "all");
     container.innerHTML = filtered.map(entry => entryCard(entry, showEditDelete)).join("");
   }
@@ -687,54 +691,35 @@
     const container = document.getElementById("frequentList");
     const sorted = [...entries].filter(e => e.copyCount > 0).sort((a,b) => b.copyCount - a.copyCount);
     if (!sorted.length) { container.innerHTML = `<div class="empty-msg">⭐ কোনো নম্বর কপি করা হয়নি। কপি করলেই এখানে দেখাবে।</div>`; return; }
+    // Always show edit/delete in Frequent panel
     container.innerHTML = sorted.map(entry => entryCard(entry, true)).join("");
   }
 
-  // Global event delegation for copy, edit, delete (fixes copy issue)
+  // Global event delegation for copy, edit, delete
   function attachGlobalDelegation() {
-    // All data panel
     const allDataList = document.getElementById("allDataList");
-    if (allDataList) {
-      allDataList.addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-icon');
-        if (!btn) return;
-        e.stopPropagation();
-        
-        if (btn.classList.contains('btn-copy')) {
-          const id = btn.dataset.id;
-          const number = btn.dataset.number;
-          if (id && number) handleCopy(id, number);
-        } else if (btn.classList.contains('btn-edit')) {
-          const id = parseInt(btn.dataset.id);
-          openEditModal(id);
-        } else if (btn.classList.contains('btn-delete')) {
-          const id = parseInt(btn.dataset.id);
-          deleteEntryById(id);
-        }
-      });
-    }
-    
-    // Frequent panel
     const frequentList = document.getElementById("frequentList");
-    if (frequentList) {
-      frequentList.addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-icon');
-        if (!btn) return;
-        e.stopPropagation();
-        
-        if (btn.classList.contains('btn-copy')) {
-          const id = btn.dataset.id;
-          const number = btn.dataset.number;
-          if (id && number) handleCopy(id, number);
-        } else if (btn.classList.contains('btn-edit')) {
-          const id = parseInt(btn.dataset.id);
-          openEditModal(id);
-        } else if (btn.classList.contains('btn-delete')) {
-          const id = parseInt(btn.dataset.id);
-          deleteEntryById(id);
-        }
-      });
-    }
+
+    const handleClick = (e) => {
+      const btn = e.target.closest('.btn-icon');
+      if (!btn) return;
+      e.stopPropagation();
+
+      if (btn.classList.contains('btn-copy')) {
+        const id = btn.dataset.id;
+        const number = btn.dataset.number;
+        if (id && number) handleCopy(id, number);
+      } else if (btn.classList.contains('btn-edit')) {
+        const id = parseInt(btn.dataset.id);
+        openEditModal(id);
+      } else if (btn.classList.contains('btn-delete')) {
+        const id = parseInt(btn.dataset.id);
+        deleteEntryById(id);
+      }
+    };
+
+    if (allDataList) allDataList.addEventListener('click', handleClick);
+    if (frequentList) frequentList.addEventListener('click', handleClick);
   }
 
   function openEditModal(id) {
@@ -821,7 +806,7 @@
     });
   }
 
-  // Import/Export (supports both standard and meterContacts/mobileContacts format)
+  // Import/Export
   function convertLegacyToEntries(imported) {
     if (Array.isArray(imported) && imported.length && imported[0].hasOwnProperty('type') && imported[0].hasOwnProperty('data')) {
       return imported.map(e => ({ ...e, copyCount: e.copyCount || 0 }));
@@ -953,7 +938,7 @@
     initTypeToggle();
     initAddForm();
     initSettings();
-    attachGlobalDelegation(); // unified event handling for copy/edit/delete
+    attachGlobalDelegation();
     document.getElementById("closeModalBtn").addEventListener("click", closeModal);
     document.getElementById("editForm").addEventListener("submit", submitEdit);
     window.addEventListener("click", (e) => { if (e.target === document.getElementById("editModal")) closeModal(); });
