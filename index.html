@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+  <title>Smart Data Manager | মিটার ও মোবাইল নম্বর</title>
+  <!-- Google Fonts: Barlow for English, Hind Siliguri for Bengali -->
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-surface: #ffffff;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-tertiary: #64748b;
+      --border-light: #e2e8f0;
+      --accent: #3b82f6;
+      --accent-dark: #2563eb;
+      --accent-soft: #eff6ff;
+      --danger: #ef4444;
+      --danger-soft: #fef2f2;
+      --success: #10b981;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark {
+      --bg-primary: #0f172a;
+      --bg-surface: #1e293b;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-tertiary: #94a3b8;
+      --border-light: #334155;
+      --accent: #60a5fa;
+      --accent-dark: #3b82f6;
+      --accent-soft: #1e293b;
+      --danger: #f87171;
+      --danger-soft: #2d1a1a;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Barlow', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.5;
+      padding-bottom: 80px;
+      font-weight: 400;
+      transition: var(--transition);
+    }
+
+    .app-container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 24px 20px 32px;
+    }
+
+    /* Bottom Navigation - minimal icons */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 640px;
+      margin: 0 auto;
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      background: rgba(var(--bg-surface-rgb, 255,255,255), 0.9);
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 20px 28px;
+      z-index: 20;
+      transition: var(--transition);
+    }
+    body.dark .bottom-nav {
+      background: rgba(30, 41, 59, 0.95);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: transparent;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 40px;
+      transition: var(--transition);
+    }
+    .nav-item.active {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .nav-icon {
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    /* Panels */
+    .panel {
+      display: none;
+      animation: fadeSlideUp 0.3s ease;
+    }
+    .panel.active-panel {
+      display: block;
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      margin-bottom: 24px;
+      color: var(--text-primary);
+      font-family: 'Barlow', 'Hind Siliguri', sans-serif;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+      transition: var(--transition);
+      overflow: hidden;
+    }
+    .card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .entry-card {
+      padding: 16px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .entry-info {
+      flex: 2;
+      min-width: 160px;
+    }
+    .entry-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 30px;
+      margin-bottom: 10px;
+      width: fit-content;
+    }
+    .entry-number {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      word-break: break-all;
+      margin-bottom: 6px;
+      font-family: 'Barlow', 'Hind Siliguri', monospace;
+    }
+    .entry-note {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .entry-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-icon {
+      background: transparent;
+      border: 1px solid var(--border-light);
+      border-radius: 40px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-icon:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      transform: scale(0.96);
+    }
+    .btn-copy {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .btn-edit {
+      background: var(--bg-surface);
+    }
+    .btn-delete {
+      background: var(--danger-soft);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* Type toggle buttons */
+    .type-toggle-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .type-toggle {
+      flex: 1;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: 60px;
+      padding: 12px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .type-toggle.active-type {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    .type-toggle:not(.active-type):hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: block;
+      color: var(--text-secondary);
+    }
+    input, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 15px;
+      transition: var(--transition);
+      font-family: 'Barlow', 'Hind Siliguri', sans-serif;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+    .primary-btn {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 14px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 16px;
+      width: 100%;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 8px;
+    }
+    .primary-btn:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+    }
+
+    /* Search & Filters */
+    .search-input {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .search-input input {
+      padding-left: 44px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-tertiary);
+      font-size: 18px;
+      pointer-events: none;
+      font-weight: 400;
+    }
+    .filter-buttons {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .filter-chip {
+      background: transparent;
+      border: 1px solid var(--border-light);
+      border-radius: 40px;
+      padding: 8px 20px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--text-secondary);
+    }
+    .filter-chip.active-filter {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    .total-badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-card {
+      background: var(--bg-surface);
+      width: 90%;
+      max-width: 440px;
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-light);
+    }
+
+    /* Toast */
+    .toast-msg {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text-primary);
+      color: var(--bg-surface);
+      padding: 10px 24px;
+      border-radius: 60px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: var(--shadow-md);
+    }
+    body.dark .toast-msg {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .empty-msg {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-tertiary);
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
+    }
+
+    /* Settings */
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .toggle-switch {
+      width: 52px;
+      height: 28px;
+      background: var(--border-light);
+      border-radius: 40px;
+      display: inline-block;
+      position: relative;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .toggle-switch::after {
+      content: "";
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 3px;
+      transition: 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+    .toggle-switch.active-toggle {
+      background: var(--accent);
+    }
+    .toggle-switch.active-toggle::after {
+      left: 25px;
+    }
+    .small-btn {
+      background: transparent;
+      border: 1px solid var(--border-light);
+      border-radius: 40px;
+      padding: 10px 18px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--text-secondary);
+    }
+    .small-btn:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .flex-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    hr {
+      margin: 20px 0;
+      border: none;
+      border-top: 1px solid var(--border-light);
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <!-- All Data Panel -->
+  <div id="allDataPanel" class="panel active-panel">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 12px;">
+      <h2>All Data</h2>
+      <span class="total-badge" id="totalEntriesCount">0 entries</span>
+    </div>
+    <div class="search-input">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="নম্বর বা নোট অনুসন্ধান...">
+    </div>
+    <div class="filter-buttons" id="typeFilterGroup">
+      <button data-filter="all" class="filter-chip active-filter">All</button>
+      <button data-filter="Meter" class="filter-chip">Meters</button>
+      <button data-filter="Mobile" class="filter-chip">Mobiles</button>
+    </div>
+    <div id="allDataList"></div>
+  </div>
+
+  <!-- Add Data Panel -->
+  <div id="addDataPanel" class="panel">
+    <h2>Add New</h2>
+    <div class="card" style="padding: 24px;">
+      <form id="addEntryForm">
+        <div class="type-toggle-group" id="typeToggleGroup">
+          <button type="button" data-type="Meter" class="type-toggle active-type">📟 Meter</button>
+          <button type="button" data-type="Mobile" class="type-toggle">📱 Mobile</button>
+        </div>
+        <div class="form-group">
+          <label>Number *</label>
+          <input type="text" id="entryNumber" placeholder="যেমন: 01012345678" required>
+        </div>
+        <div class="form-group">
+          <label>Note (optional)</label>
+          <textarea id="entryNote" rows="2" placeholder="নাম, ঠিকানা বা অতিরিক্ত তথ্য..."></textarea>
+        </div>
+        <button type="submit" class="primary-btn">💾 Save Entry</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Frequently Used Panel -->
+  <div id="frequentPanel" class="panel">
+    <h2>Frequently Used</h2>
+    <p style="font-size: 14px; color: var(--text-tertiary); margin-bottom: 20px;">🔥 সর্বাধিক কপি করা নম্বর এখানে দেখাবে</p>
+    <div id="frequentList"></div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div id="settingsPanel" class="panel">
+    <h2>Settings</h2>
+    <div class="card" style="padding: 24px;">
+      <div class="setting-item">
+        <span>🌙 Dark Mode</span>
+        <div id="darkModeToggle" class="toggle-switch"></div>
+      </div>
+      <hr>
+      <div class="setting-item">
+        <span>💾 Backup & Restore</span>
+        <div class="flex-row">
+          <button id="exportBackupBtn" class="small-btn">📤 Export</button>
+          <label for="importFileInput" class="small-btn" style="cursor:pointer;">📂 Import</label>
+          <input type="file" id="importFileInput" accept=".json" style="display:none;">
+        </div>
+      </div>
+      <hr>
+      <div class="setting-item">
+        <button id="clearAllDataBtn" class="small-btn" style="color: var(--danger); border-color: var(--danger);">⚠️ Clear All Data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Navigation with minimal icons -->
+<div class="bottom-nav">
+  <button class="nav-item" data-tab="allData"><span class="nav-icon">◻</span><span>All</span></button>
+  <button class="nav-item" data-tab="addData"><span class="nav-icon">＋</span><span>Add</span></button>
+  <button class="nav-item" data-tab="frequent"><span class="nav-icon">☆</span><span>Frequent</span></button>
+  <button class="nav-item" data-tab="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
+</div>
+
+<div id="editModal" class="modal">
+  <div class="modal-card">
+    <h3 style="margin-bottom: 20px;">✏️ Edit Entry</h3>
+    <form id="editForm">
+      <div class="form-group">
+        <label>Type</label>
+        <select id="editType" required>
+          <option value="Meter">Meter Number</option>
+          <option value="Mobile">Mobile Number</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Number</label>
+        <input type="text" id="editNumber" required>
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <textarea id="editNote" rows="2"></textarea>
+      </div>
+      <div class="flex-row" style="margin-top: 8px;">
+        <button type="submit" class="primary-btn" style="flex:1">Save</button>
+        <button type="button" id="closeModalBtn" class="small-btn" style="flex:0.4">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toastMsg" class="toast-msg">Copied!</div>
+
+<script>
+  // ---------- DATA ----------
+  let entries = [];
+  let activeTab = "allData";
+  let currentSearch = "";
+  let currentTypeFilter = "all";
+  let editingId = null;
+  let selectedAddType = "Meter";
+  const STORAGE_KEY = "smartDataManager";
+
+  function loadData() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        entries = JSON.parse(stored);
+        entries = entries.map(e => ({ ...e, copyCount: e.copyCount !== undefined ? e.copyCount : 0 }));
+      } catch(e) { entries = []; }
+    }
+    if (!entries.length) {
+      entries = [
+        { id: Date.now() + 1, type: "Meter", data: "8765432109", note: "মূল বিদ্যুৎ মিটার", copyCount: 3 },
+        { id: Date.now() + 2, type: "Mobile", data: "9988776655", note: "অফিসের মোবাইল", copyCount: 2 },
+        { id: Date.now() + 3, type: "Meter", data: "1122334455", note: "পানির মিটার", copyCount: 0 },
+        { id: Date.now() + 4, type: "Mobile", data: "5566778899", note: "ব্যক্তিগত মোবাইল", copyCount: 1 }
+      ];
+      saveToLocal();
+    }
+  }
+  function saveToLocal() { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+
+  function addEntry(type, data, note) {
+    const newId = Date.now() + Math.random() * 10000;
+    entries.push({ id: newId, type, data: data.trim(), note: note.trim(), copyCount: 0 });
+    saveToLocal();
+  }
+  function updateEntry(id, type, data, note) {
+    const index = entries.findIndex(e => e.id == id);
+    if (index !== -1) entries[index] = { ...entries[index], type, data: data.trim(), note: note.trim() };
+    saveToLocal();
+  }
+  function deleteEntryById(id) {
+    if (confirm("এই এন্ট্রিটি স্থায়ীভাবে মুছে ফেলবেন?")) {
+      entries = entries.filter(e => e.id != id);
+      saveToLocal();
+      reRenderCurrentTab();
+      updateTotalCount();
+    }
+  }
+  function incrementCopyCount(id) {
+    const entry = entries.find(e => e.id == id);
+    if (entry) { entry.copyCount++; saveToLocal(); reRenderCurrentTab(); }
+  }
+  async function handleCopy(id, number) {
+    try {
+      await navigator.clipboard.writeText(number);
+      incrementCopyCount(id);
+      showToast(`✅ Copied: ${number}`);
+    } catch (err) {
+      console.error(err);
+      showToast("❌ Copy failed. Please try again.");
+    }
+  }
+
+  // --- Card rendering with conditional buttons ---
+  function entryCard(entry, showEditDelete = true) {
+    return `
+      <div class="card entry-card" data-id="${entry.id}">
+        <div class="entry-info">
+          <span class="entry-badge">${entry.type === "Meter" ? "📟 Meter" : "📱 Mobile"}</span>
+          <div class="entry-number">${escapeHtml(entry.data)}</div>
+          ${entry.note ? `<div class="entry-note">📝 ${escapeHtml(entry.note)}</div>` : `<div class="entry-note">—</div>`}
+          <div class="entry-note" style="font-size:12px; margin-top:6px;">⭐ ${entry.copyCount} copies</div>
+        </div>
+        <div class="entry-actions">
+          <button class="btn-icon btn-copy" data-action="copy" data-id="${entry.id}" data-number="${escapeHtml(entry.data)}">📋 Copy</button>
+          ${showEditDelete ? `
+            <button class="btn-icon btn-edit" data-action="edit" data-id="${entry.id}">✏️ Edit</button>
+            <button class="btn-icon btn-delete" data-action="delete" data-id="${entry.id}">🗑️ Delete</button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAllData() {
+    const container = document.getElementById("allDataList");
+    let filtered = entries.filter(e => {
+      const matchType = currentTypeFilter === "all" || e.type === currentTypeFilter;
+      const searchTerm = currentSearch.toLowerCase();
+      const matchSearch = !searchTerm || e.data.toLowerCase().includes(searchTerm) || e.note.toLowerCase().includes(searchTerm);
+      return matchType && matchSearch;
+    });
+    if (!filtered.length) { container.innerHTML = `<div class="empty-msg">✨ কোনো এন্ট্রি পাওয়া যায়নি</div>`; return; }
+    
+    const showEditDelete = (currentTypeFilter !== "all");
+    container.innerHTML = filtered.map(entry => entryCard(entry, showEditDelete)).join("");
+  }
+
+  function renderFrequentList() {
+    const container = document.getElementById("frequentList");
+    const sorted = [...entries].filter(e => e.copyCount > 0).sort((a,b) => b.copyCount - a.copyCount);
+    if (!sorted.length) { container.innerHTML = `<div class="empty-msg">⭐ কোনো নম্বর কপি করা হয়নি। কপি করলেই এখানে দেখাবে।</div>`; return; }
+    container.innerHTML = sorted.map(entry => entryCard(entry, true)).join("");
+  }
+
+  // Global event delegation for copy, edit, delete (fixes copy issue)
+  function attachGlobalDelegation() {
+    // All data panel
+    const allDataList = document.getElementById("allDataList");
+    if (allDataList) {
+      allDataList.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-icon');
+        if (!btn) return;
+        e.stopPropagation();
+        
+        if (btn.classList.contains('btn-copy')) {
+          const id = btn.dataset.id;
+          const number = btn.dataset.number;
+          if (id && number) handleCopy(id, number);
+        } else if (btn.classList.contains('btn-edit')) {
+          const id = parseInt(btn.dataset.id);
+          openEditModal(id);
+        } else if (btn.classList.contains('btn-delete')) {
+          const id = parseInt(btn.dataset.id);
+          deleteEntryById(id);
+        }
+      });
+    }
+    
+    // Frequent panel
+    const frequentList = document.getElementById("frequentList");
+    if (frequentList) {
+      frequentList.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-icon');
+        if (!btn) return;
+        e.stopPropagation();
+        
+        if (btn.classList.contains('btn-copy')) {
+          const id = btn.dataset.id;
+          const number = btn.dataset.number;
+          if (id && number) handleCopy(id, number);
+        } else if (btn.classList.contains('btn-edit')) {
+          const id = parseInt(btn.dataset.id);
+          openEditModal(id);
+        } else if (btn.classList.contains('btn-delete')) {
+          const id = parseInt(btn.dataset.id);
+          deleteEntryById(id);
+        }
+      });
+    }
+  }
+
+  function openEditModal(id) {
+    const entry = entries.find(e => e.id == id);
+    if (!entry) return;
+    editingId = id;
+    document.getElementById("editType").value = entry.type;
+    document.getElementById("editNumber").value = entry.data;
+    document.getElementById("editNote").value = entry.note || "";
+    document.getElementById("editModal").style.display = "flex";
+  }
+  function closeModal() { document.getElementById("editModal").style.display = "none"; editingId = null; }
+  function submitEdit(e) {
+    e.preventDefault();
+    if (!editingId) return;
+    const newType = document.getElementById("editType").value;
+    const newNumber = document.getElementById("editNumber").value.trim();
+    const newNote = document.getElementById("editNote").value;
+    if (!newNumber) { showToast("Number required"); return; }
+    updateEntry(editingId, newType, newNumber, newNote);
+    closeModal();
+    reRenderCurrentTab();
+    updateTotalCount();
+    showToast("✅ Entry updated");
+  }
+  function showToast(msg) {
+    const toast = document.getElementById("toastMsg");
+    toast.textContent = msg;
+    toast.style.opacity = "1";
+    setTimeout(() => toast.style.opacity = "0", 1800);
+  }
+  function updateTotalCount() {
+    const span = document.getElementById("totalEntriesCount");
+    if (span) span.innerText = `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`;
+  }
+  function reRenderCurrentTab() {
+    if (activeTab === "allData") renderAllData();
+    if (activeTab === "frequent") renderFrequentList();
+    updateTotalCount();
+  }
+
+  // Search & Filter
+  function bindSearchAndFilter() {
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      currentSearch = e.target.value;
+      renderAllData();
+    });
+    document.querySelectorAll("#typeFilterGroup .filter-chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#typeFilterGroup .filter-chip").forEach(b => b.classList.remove("active-filter"));
+        btn.classList.add("active-filter");
+        currentTypeFilter = btn.dataset.filter;
+        renderAllData();
+      });
+    });
+  }
+
+  // Type toggle buttons for Add form
+  function initTypeToggle() {
+    const toggleBtns = document.querySelectorAll("#typeToggleGroup .type-toggle");
+    toggleBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        toggleBtns.forEach(b => b.classList.remove("active-type"));
+        btn.classList.add("active-type");
+        selectedAddType = btn.dataset.type;
+      });
+    });
+  }
+
+  // Add Form
+  function initAddForm() {
+    document.getElementById("addEntryForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const number = document.getElementById("entryNumber").value.trim();
+      const note = document.getElementById("entryNote").value;
+      if (!number) { showToast("নম্বর লিখুন"); return; }
+      addEntry(selectedAddType, number, note);
+      document.getElementById("entryNumber").value = "";
+      document.getElementById("entryNote").value = "";
+      showToast("✅ Entry added");
+      if (activeTab === "allData") renderAllData();
+      if (activeTab === "frequent") renderFrequentList();
+      updateTotalCount();
+    });
+  }
+
+  // Import/Export (supports both standard and meterContacts/mobileContacts format)
+  function convertLegacyToEntries(imported) {
+    if (Array.isArray(imported) && imported.length && imported[0].hasOwnProperty('type') && imported[0].hasOwnProperty('data')) {
+      return imported.map(e => ({ ...e, copyCount: e.copyCount || 0 }));
+    }
+    if (imported && (imported.meterContacts || imported.mobileContacts)) {
+      const newEntries = [];
+      let id = Date.now();
+      if (Array.isArray(imported.meterContacts)) {
+        imported.meterContacts.forEach(c => { if(c.number) newEntries.push({ id: id++, type: "Meter", data: c.number.trim(), note: c.name || "", copyCount: 0 }); });
+      }
+      if (Array.isArray(imported.mobileContacts)) {
+        imported.mobileContacts.forEach(c => { if(c.number) newEntries.push({ id: id++, type: "Mobile", data: c.number.trim(), note: c.name || "", copyCount: 0 }); });
+      }
+      return newEntries;
+    }
+    return null;
+  }
+  function exportBackup() {
+    const dataStr = JSON.stringify(entries, null, 2);
+    const blob = new Blob([dataStr], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `smartdata_backup_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("📁 Backup exported");
+  }
+  function importBackup(file) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        let newEntries = convertLegacyToEntries(imported);
+        if (!newEntries && Array.isArray(imported)) {
+          newEntries = imported.filter(i => i.number).map(i => ({ id: Date.now() + Math.random(), type: (i.type === "meter"||i.type==="Meter")?"Meter":"Mobile", data: i.number, note: i.name||"", copyCount: 0 }));
+        }
+        if (newEntries && newEntries.length >= 0) {
+          entries = newEntries;
+          saveToLocal();
+          reRenderCurrentTab();
+          updateTotalCount();
+          if (activeTab === "allData") renderAllData();
+          if (activeTab === "frequent") renderFrequentList();
+          showToast(`✅ Imported ${entries.length} entries`);
+        } else {
+          showToast("❌ Invalid backup format");
+        }
+      } catch { showToast("❌ Failed to parse file"); }
+    };
+    reader.readAsText(file);
+  }
+  function clearAllData() {
+    if (confirm("সকল ডাটা মুছে ফেলবেন? এই কাজ ফিরিয়ে আনা সম্ভব নয়।")) {
+      entries = [];
+      saveToLocal();
+      reRenderCurrentTab();
+      updateTotalCount();
+      if (activeTab === "allData") renderAllData();
+      if (activeTab === "frequent") renderFrequentList();
+      showToast("🗑️ All data cleared");
+    }
+  }
+
+  // Dark Mode
+  function initDarkMode() {
+    const stored = localStorage.getItem("darkModePref");
+    const isDark = stored === "true";
+    if (isDark) document.body.classList.add("dark");
+    const toggle = document.getElementById("darkModeToggle");
+    if (isDark) toggle.classList.add("active-toggle");
+    toggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const darkActive = document.body.classList.contains("dark");
+      if (darkActive) toggle.classList.add("active-toggle");
+      else toggle.classList.remove("active-toggle");
+      localStorage.setItem("darkModePref", darkActive);
+    });
+  }
+
+  // Navigation
+  function initTabs() {
+    const navBtns = document.querySelectorAll(".nav-item");
+    const panels = {
+      allData: document.getElementById("allDataPanel"),
+      addData: document.getElementById("addDataPanel"),
+      frequent: document.getElementById("frequentPanel"),
+      settings: document.getElementById("settingsPanel")
+    };
+    function setActiveTab(tabId) {
+      Object.values(panels).forEach(p => p.classList.remove("active-panel"));
+      panels[tabId].classList.add("active-panel");
+      navBtns.forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.dataset.tab === tabId) btn.classList.add("active");
+      });
+      activeTab = tabId;
+      if (tabId === "allData") renderAllData();
+      if (tabId === "frequent") renderFrequentList();
+      if (tabId === "settings") updateTotalCount();
+    }
+    navBtns.forEach(btn => btn.addEventListener("click", () => setActiveTab(btn.dataset.tab)));
+    setActiveTab("allData");
+  }
+
+  function initSettings() {
+    document.getElementById("exportBackupBtn").addEventListener("click", exportBackup);
+    const fileInput = document.getElementById("importFileInput");
+    document.querySelector("label[for='importFileInput']").addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", () => { if (fileInput.files.length) importBackup(fileInput.files[0]); fileInput.value = ""; });
+    document.getElementById("clearAllDataBtn").addEventListener("click", clearAllData);
+  }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  function init() {
+    loadData();
+    initDarkMode();
+    initTabs();
+    bindSearchAndFilter();
+    initTypeToggle();
+    initAddForm();
+    initSettings();
+    attachGlobalDelegation(); // unified event handling for copy/edit/delete
+    document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+    document.getElementById("editForm").addEventListener("submit", submitEdit);
+    window.addEventListener("click", (e) => { if (e.target === document.getElementById("editModal")) closeModal(); });
+    updateTotalCount();
+    renderAllData();
+  }
+  init();
+</script>
+</body>
+</html>
