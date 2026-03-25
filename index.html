@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
-  <title>Smart Data Manager | মিটার ও মোবাইল নম্বর</title>
+  <title>KAZI STORE | মিটার ও মোবাইল নম্বর</title>
   <!-- Google Fonts: Barlow for English, Hind Siliguri for Bengali -->
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -476,10 +476,10 @@
 </head>
 <body>
 <div class="app-container">
-  <!-- All Data Panel -->
+  <!-- All Data Panel (now KAZI STORE) -->
   <div id="allDataPanel" class="panel active-panel">
     <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 12px;">
-      <h2>All Data</h2>
+      <h2>KAZI STORE</h2>
       <span class="total-badge" id="totalEntriesCount">0 entries</span>
     </div>
     <div class="search-input">
@@ -500,7 +500,7 @@
     <div class="card" style="padding: 24px;">
       <form id="addEntryForm">
         <div class="type-toggle-group" id="typeToggleGroup">
-          <button type="button" data-type="Meter" class="type-toggle active-type">📟 Meter</button>
+          <button type="button" data-type="Meter" class="type-toggle active-type">⚡ Meter</button>
           <button type="button" data-type="Mobile" class="type-toggle">📱 Mobile</button>
         </div>
         <div class="form-group">
@@ -550,7 +550,7 @@
 
 <!-- Bottom Navigation with minimal icons -->
 <div class="bottom-nav">
-  <button class="nav-item" data-tab="allData"><span class="nav-icon">◻</span><span>All</span></button>
+  <button class="nav-item" data-tab="allData"><span class="nav-icon">◻</span><span>Store</span></button>
   <button class="nav-item" data-tab="addData"><span class="nav-icon">＋</span><span>Add</span></button>
   <button class="nav-item" data-tab="frequent"><span class="nav-icon">☆</span><span>Frequent</span></button>
   <button class="nav-item" data-tab="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
@@ -650,13 +650,13 @@
   }
 
   // --- Card rendering with conditional buttons ---
-  // showEditDelete: if true, show Copy+Edit+Delete; if false, show only Copy.
+  // showEditDelete: true for filtered views (Meters/Mobiles) and Frequent panel; false for All (only copy)
   function entryCard(entry, showEditDelete = true) {
     const noteIcon = "🗒️";
     return `
       <div class="card entry-card" data-id="${entry.id}">
         <div class="entry-info">
-          <span class="entry-badge">${entry.type === "Meter" ? "📟 Meter" : "📱 Mobile"}</span>
+          <span class="entry-badge">${entry.type === "Meter" ? "⚡ Meter" : "📱 Mobile"}</span>
           <div class="entry-number">${escapeHtml(entry.data)}</div>
           ${entry.note ? `<div class="entry-note">${noteIcon} ${escapeHtml(entry.note)}</div>` : `<div class="entry-note">${noteIcon} —</div>`}
           <div class="entry-note" style="font-size:12px; margin-top:6px;">⭐ ${entry.copyCount} copies</div>
